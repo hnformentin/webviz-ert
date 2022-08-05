@@ -12,7 +12,7 @@ from webviz_ert.controllers.response_correlation_controller import (
 )
 
 
-def test__sort_dataframe():
+def test_sort_dataframe():
     one_key = "WOPR"
     other_key = "BGMC"
     data = {}
