@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import dash
 import datetime
+import numpy as np
 
 from typing import List, Optional, Dict, Tuple, Any, Union
 from copy import deepcopy
@@ -628,12 +629,15 @@ def _get_first_observation_x(obs_data: pd.DataFrame) -> Union[int, str]:
     return caster.get(type(first_observation), lambda *args: False)(first_observation)
 
 
-def _format_index_value(axis: pd.Index, index: int) -> Union[int, datetime.date]:
+def _format_index_value(axis: pd.Index, index: np.number) -> Union[int, datetime.date]:
+    """_format_index_value takes the value of `axis` at position `index` and
+    tries to convert it to a datetime. If this works, it returns just the date.
+    If parsing fails, it returns the value unaltered."""
     raw_value = axis[index]
     if isinstance(raw_value, str):
         try:
             datetime_value = pd.to_datetime(raw_value)
             return datetime_value.date()
-        except (pd.errors.ParserError):
+        except (pd.errors.ParserError, ValueError):
             pass
     return raw_value

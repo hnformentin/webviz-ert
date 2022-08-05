@@ -5,6 +5,7 @@ from webviz_ert.controllers.response_correlation_controller import (
     _define_style_ensemble,
     _get_first_observation_index,
     _layout_figure,
+    _format_index_value,
 )
 
 from webviz_ert.controllers.response_correlation_controller import (
@@ -114,3 +115,18 @@ def test_get_first_observation_x_invalid():
     df_observation = pd.DataFrame([int(1)], columns=["x_axis"])
     with pytest.raises(ValueError, match="invalid obs_data type"):
         _get_first_observation_x(df_observation)
+
+
+@pytest.mark.parametrize(
+    "raw_value,expected_formatted_value",
+    [
+        ("2022-08-05 14:25:00", "2022-08-05"),
+        ("2022-09-21 14:25:00", "2022-09-21"),
+        (14, "14"),
+        ("213", "213"),
+        ("SPAM", "SPAM"),
+    ],
+)
+def test_format_index_value(raw_value: str, expected_formatted_value: str):
+    axis = pd.Index(data=[raw_value])
+    assert _format_index_value(axis, 0).__str__() == expected_formatted_value
