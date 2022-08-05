@@ -323,7 +323,6 @@ def response_correlation_controller(parent: WebvizErtPluginABC, app: dash.Dash) 
                         PlotModel(
                             x_axis=x_data.values.flatten(),
                             y_axis=y_data.values.flatten(),
-                            text="Mean",  # TODO ask about this!
                             name=(f"{ensemble.name}"),
                             hoverlabel={"namelength": -1},
                             **style,
