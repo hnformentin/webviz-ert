@@ -332,23 +332,26 @@ def response_correlation_controller(parent: WebvizErtPluginABC, app: dash.Dash) 
                     _resp_plots[str(ensemble)] = x_data.values.flatten()
                     _param_plots[str(ensemble)] = y_data.values.flatten()
 
-        formatted_x_value = _format_index_value(response.axis, x_index)
+        n_rows = 5
+        specs = [[{"colspan": 2, "rowspan": 3}, None]]
+        specs += (n_rows - 2) * [[None, None]]  # type:ignore
+        specs.append([{"rowspan": 1}, {"rowspan": 1}])
         fig = make_subplots(
-            rows=4,
+            rows=n_rows,
             cols=2,
-            specs=[
-                [{"colspan": 2, "rowspan": 3}, None],
-                [None, None],
-                [None, None],
-                [{"rowspan": 1}, {"rowspan": 1}],
-            ],
+            specs=specs,
             subplot_titles=[
-                f"Scatterplot - {active_response} x {active_parameter} @ {formatted_x_value}",
-                f"{active_parameter}",
-                f"{active_response}",
+                "Scatterplot - Response @ Index vs. Parameter",
+                "Histogram Parameter",
+                "Histogram Response",
             ],
-            row_titles=["Histograms"],
         )
+
+        formatted_x_value = _format_index_value(response.axis, x_index)
+        _style_scatterplot(
+            fig, active_response, active_parameter, formatted_x_value, n_rows
+        )
+
         for plot in _plots:
             fig.add_trace(plot.repr, 1, 1)
 
@@ -364,7 +367,7 @@ def response_correlation_controller(parent: WebvizErtPluginABC, app: dash.Dash) 
                     "showlegend": False,
                     "marker_color": _colors[ensemble_name],
                 },
-                4,
+                n_rows,
                 1,
             )
         for ensemble_name in _resp_plots:
@@ -379,11 +382,9 @@ def response_correlation_controller(parent: WebvizErtPluginABC, app: dash.Dash) 
                     "showlegend": False,
                     "marker_color": _colors[ensemble_name],
                 },
-                4,
+                n_rows,
                 2,
             )
-        fig.update_layout(assets.ERTSTYLE["figure"]["layout"])
-        fig.update_layout(showlegend=False)
         final_text = []
         for response_name in responses:
             x_axis = ensemble.responses[response_name].axis
@@ -629,7 +630,7 @@ def _get_first_observation_x(obs_data: pd.DataFrame) -> Union[int, str]:
     return caster.get(type(first_observation), lambda *args: False)(first_observation)
 
 
-def _format_index_value(axis: pd.Index, index: np.number) -> Union[int, datetime.date]:
+def _format_index_value(axis: pd.Index, index: int) -> Union[np.number, datetime.date]:
     """_format_index_value takes the value of `axis` at position `index` and
     tries to convert it to a datetime. If this works, it returns just the date.
     If parsing fails, it returns the value unaltered."""
@@ -641,3 +642,18 @@ def _format_index_value(axis: pd.Index, index: np.number) -> Union[int, datetime
         except (pd.errors.ParserError, ValueError):
             pass
     return raw_value
+
+
+def _style_scatterplot(
+    fig: go.Figure,
+    active_response: str,
+    active_parameter: str,
+    x_value: Union[datetime.date, np.number],
+    n_rows: int,
+) -> None:
+    fig.update_layout(assets.ERTSTYLE["figure"]["layout"])
+    fig.update_xaxes(title_text=f"{active_response} @ {x_value}", row=1, col=1)
+    fig.update_yaxes(title_text=f"{active_parameter}", row=1, col=1)
+    fig.update_xaxes(title_text=f"{active_parameter}", row=n_rows, col=1)
+    fig.update_xaxes(title_text=f"{active_response}", row=n_rows, col=2)
+    fig.update_layout(showlegend=False)
