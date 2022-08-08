@@ -126,6 +126,7 @@ def test_get_first_observation_x_invalid():
         ("213", "213"),
         ("SPAM", "SPAM"),
     ],
+    ids=["date1", "date2", "numeric", "numeric-as-string", "silly-string"],
 )
 def test_format_index_value(raw_value: str, expected_formatted_value: str):
     axis = pd.Index(data=[raw_value])
